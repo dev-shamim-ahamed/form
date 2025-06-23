@@ -971,7 +971,6 @@ body {
 
 <script>// Google Sheets script URL (replace with your deployed web app URL)
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFircTUQYp_VAO7UXpnlgrf7EGgg0DijC986kZx8sJ9p_OnPOfU4a3DC_fH6-4OEI5/exec';
-const SPREADSHEET_ID = '1o5l_Uj7BEuMTpTGFbtEiI0VeY9ZSIzVJ5QEEE811OkI'; // Only needed if you want to link to the sheet
 
 // Redirect URL after successful submission
 const REDIRECT_URL = 'https://link.crmleadjen.com/widget/bookings/fundpera';
@@ -1073,7 +1072,7 @@ $(document).ready(function() {
             submitBtn.html('<span class="loading-spinner"></span> Submitting...');
             submitBtn.prop('disabled', true);
             
-            // Prepare form data
+            // Prepare form data according to Google Apps Script requirements
             const formData = {
                 loanAmount: $('#loan-amount-slider').val(),
                 monthlyRevenue: $('input[name="monthly-revenue"]:checked').val(),
@@ -1085,8 +1084,7 @@ $(document).ready(function() {
                 countryCode: selectedCountry.code,
                 countryName: selectedCountry.name,
                 additionalInfo: $('#additional-info').val(),
-                agreedToInvestment: userAgreedToInvestment,
-                timestamp: new Date().toISOString()
+                agreedToInvestment: userAgreedToInvestment
             };
             
             console.log('Form data being sent:', formData);
@@ -1099,24 +1097,34 @@ $(document).ready(function() {
                 data: JSON.stringify(formData),
                 success: function(response) {
                     console.log('Server response:', response);
-                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
-                    submitBtn.prop('disabled', false);
                     
-                    if (response.status === "success") {
-                        Swal.fire({
-                            title: 'Application Submitted!',
-                            text: 'Thank you for your application. We will review your information and contact you shortly.',
-                            icon: 'success',
-                            confirmButtonText: 'Great!',
-                            confirmButtonColor: '#4361ee',
-                            customClass: {
-                                popup: 'swal-center'
-                            }
-                        }).then(() => {
-                            window.location.href = REDIRECT_URL;
-                        });
-                    } else {
-                        showErrorAlert('Submission completed but server reported an issue: ' + response.message);
+                    try {
+                        // Parse the response if it's a string
+                        const responseData = typeof response === 'string' ? JSON.parse(response) : response;
+                        
+                        submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+                        submitBtn.prop('disabled', false);
+                        
+                        if (responseData.status === "success") {
+                            Swal.fire({
+                                title: 'Application Submitted!',
+                                text: 'Thank you for your application. We will review your information and contact you shortly.',
+                                icon: 'success',
+                                confirmButtonText: 'Great!',
+                                confirmButtonColor: '#4361ee',
+                                customClass: {
+                                    popup: 'swal-center'
+                                }
+                            }).then(() => {
+                                window.location.href = REDIRECT_URL;
+                            });
+                        } else {
+                            showErrorAlert('Submission completed but server reported an issue: ' + 
+                                (responseData.message || 'Unknown error'));
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        showErrorAlert('There was an error processing the server response. Please try again.');
                     }
                 },
                 error: function(xhr, status, error) {
