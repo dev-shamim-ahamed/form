@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Loan Application</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- SweetAlert CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --secondary: #3f37c9;
+    --accent: #4895ef;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --success: #4cc9f0;
+    --warning: #f8961e;
+    --danger: #f72585;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --border-radius: 12px;
+    --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #fff;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Form Header */
+.form-header {
+    text-align: center;
+    margin-bottom: 2.2rem;
+}
+
+.form-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    font-size: 1.1rem;
+    color: var(--gray);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Progress Bar */
+.progress-container {
+    width: 100%;
+    margin-bottom: 0.1rem;
+    position: relative;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--light-gray);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background-color: var(--primary);
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+.progress-percentage {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Form Container */
+.form-container {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Form Pages */
+.form-page {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.form-page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Fields */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    color: var(--dark);
+}
+
+.required::after {
+    content: '*';
+    color: var(--danger);
+    margin-left: 4px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+/* Phone input styling */
+.phone-input {
+    display: flex;
+    align-items: center;
+}
+
+.country-select {
+    position: relative;
+    min-width: 120px;
+}
+
+.country-select-toggle {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--light-gray);
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.country-select-toggle i {
+    margin-right: 0.5rem;
+    color: var(--primary);
+}
+
+.country-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid var(--light-gray);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    box-shadow: var(--box-shadow);
+    z-index: 10;
+    display: none;
+}
+
+.country-select-dropdown.show {
+    display: block;
+}
+
+.country-option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.country-option:hover {
+    background-color: var(--light);
+}
+
+.country-flag {
+    margin-right: 0.5rem;
+    width: 20px;
+    text-align: center;
+}
+
+.phone-number {
+    flex: 1;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    border-left: none;
+}
+
+/* Slider Styling */
+.slider-container {
+    padding: 1.5rem 0;
+}
+
+.slider-wrapper {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--light-gray);
+    outline: none;
+    margin: 1rem 0;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: 4px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: var(--transition);
+}
+
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.slider-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+/* Button Grid Styling - ALWAYS 2 COLUMNS */
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.grid-button {
+    position: relative;
+}
+
+.grid-input {
+    position: absolute;
+    opacity: 0;
+}
+
+.grid-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    background-color: white;
+    border: 2px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    height: 100%;
+}
+
+.grid-label:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: var(--box-shadow);
+}
+
+.grid-input:checked + .grid-label {
+    border-color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+.grid-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+}
+
+/* Textarea Styling */
+.textarea-control {
+    width: 100%;
+    min-height: 120px;
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    resize: vertical;
+}
+
+.textarea-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+/* Review Section */
+.review-section {
+    background-color: var(--light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.review-section h3 {
+    margin-bottom: 1rem;
+    color: var(--primary);
+    font-size: 1.1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.review-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--light-gray);
+}
+
+.review-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.review-label {
+    font-weight: 500;
+    color: var(--gray);
+}
+
+.review-value {
+    font-weight: 600;
+    color: var(--dark);
+    text-align: right;
+}
+
+/* Form Navigation */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--gray);
+    color: var(--gray);
+}
+
+.btn-outline:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #cccccc;
+    border-color: #cccccc;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .form-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-container {
+        padding: 1.5rem;
+    }
+    
+    /* Button grid remains 2 columns */
+    .button-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Adjust button content for small screens */
+    .grid-label {
+        padding: 1rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .grid-icon {
+        font-size: 1.2rem;
+    }
+}
+
+/* Animation for form steps */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.4s ease;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.4s ease;
+}
+
+/* Loading animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* SweetAlert Customizations */
+.swal2-popup {
+    font-family: 'Inter', sans-serif !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--box-shadow) !important;
+    padding: 2rem !important;
+}
+
+.swal2-title {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    color: var(--dark) !important;
+    margin-bottom: 1rem !important;
+}
+
+.swal2-html-container {
+    font-size: 1rem !important;
+    color: var(--gray) !important;
+    line-height: 1.6 !important;
+}
+
+.swal2-confirm {
+    background-color: var(--primary) !important;
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 500 !important;
+    transition: var(--transition) !important;
+}
+
+.swal2-confirm:hover {
+    background-color: var(--primary-dark) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--box-shadow) !important;
+}
+
+.swal2-cancel {
+    background-color: #bbb !important;
+    border: none !important;
+    border-radius: var(--border-radius) !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 500 !important;
+    transition: var(--transition) !important;
+}
+
+.swal2-cancel:hover {
+    background-color: #999 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--box-shadow) !important;
+}
+
+.swal2-icon {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Centered content for popups */
+.swal-center {
+    text-align: center !important;
+}
+
+.swal-center .swal2-title,
+.swal-center .swal2-html-container {
+    text-align: center !important;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.swal-center .swal2-actions {
+    justify-content: center !important;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+    <form id="loanApplicationForm">
+        
+        <!-- Page 1: Loan Amount -->
+        <div class="form-container">
+                  <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="form-progress"></div>
+            </div>
+            <div class="progress-percentage" id="progress-percentage">0%</div>
+        </div>
+            <div class="form-page active" id="page-1" data-page="1">
+                <div class="form-group">
+                    <h2><i class="fas fa-dollar-sign"></i> How much funding do you need?</h2>
+                    <p class="text-muted">Slide to select your desired loan amount</p>
+                </div>
+                
+                <div class="form-group slider-container">
+                    <div class="slider-wrapper">
+                        <div class="slider-value" id="loan-amount-value">$10,000</div>
+                        <input type="range" min="10000" max="500000" step="5000" value="10000" class="slider" id="loan-amount-slider">
+                        <div class="slider-labels">
+                            <span>$10K</span>
+                            <span>$500K</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline" disabled>
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="2" style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 2: Revenue -->
+            <div class="form-page" id="page-2" data-page="2">
+                <div class="form-group">
+                    <h2><i class="fas fa-chart-line"></i> What's your average monthly revenue?</h2>
+                    <p class="text-muted">Select the option that best matches your business</p>
+                </div>
+                
+                <div class="form-group">
+                    <div class="button-grid" id="revenue-options">
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-startup" value="startup" class="grid-input">
+                            <label for="revenue-startup" class="grid-label">
+                                <i class="fas fa-seedling grid-icon"></i>
+                                <span>Startup</span>
+                                <small>Less than $5K</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-5k-10k" value="5k-10k" class="grid-input">
+                            <label for="revenue-5k-10k" class="grid-label">
+                                <i class="fas fa-store grid-icon"></i>
+                                <span>$5K-$10K</span>
+                                <small>Early stage</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-10k-30k" value="10k-30k" class="grid-input">
+                            <label for="revenue-10k-30k" class="grid-label">
+                                <i class="fas fa-chart-pie grid-icon"></i>
+                                <span>$10K-$30K</span>
+                                <small>Growing</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-30k-100k" value="30k-100k" class="grid-input">
+                            <label for="revenue-30k-100k" class="grid-label">
+                                <i class="fas fa-rocket grid-icon"></i>
+                                <span>$30K-$100K</span>
+                                <small>Established</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-100k-300k" value="100k-300k" class="grid-input">
+                            <label for="revenue-100k-300k" class="grid-label">
+                                <i class="fas fa-briefcase grid-icon"></i>
+                                <span>$100K-$300K</span>
+                                <small>Mature</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="monthly-revenue" id="revenue-300k-plus" value="300k+" class="grid-input">
+                            <label for="revenue-300k-plus" class="grid-label">
+                                <i class="fas fa-building grid-icon"></i>
+                                <span>$300K+</span>
+                                <small>Enterprise</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="1">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="3" id="revenue-continue-btn" disabled style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 3: Business Info -->
+            <div class="form-page" id="page-3" data-page="3">
+                <div class="form-group">
+                    <h2><i class="fas fa-building"></i> How long have you been in business?</h2>
+                    <p class="text-muted">Select the option that best describes your business age</p>
+                </div>
+                
+                <div class="form-group">
+                    <div class="button-grid" id="business-age-options">
+                        <div class="grid-button">
+                            <input type="radio" name="business-age" id="business-age-startup" value="startup" class="grid-input">
+                            <label for="business-age-startup" class="grid-label">
+                                <i class="fas fa-seedling grid-icon"></i>
+                                <span>Startup</span>
+                                <small>Less than 6 months</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="business-age" id="business-age-6-12" value="6-12" class="grid-input">
+                            <label for="business-age-6-12" class="grid-label">
+                                <i class="fas fa-store grid-icon"></i>
+                                <span>6-12 months</span>
+                                <small>Early stage</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="business-age" id="business-age-1-3" value="1-3" class="grid-input">
+                            <label for="business-age-1-3" class="grid-label">
+                                <i class="fas fa-chart-line grid-icon"></i>
+                                <span>1-3 years</span>
+                                <small>Growing</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="business-age" id="business-age-3plus" value="3+" class="grid-input">
+                            <label for="business-age-3plus" class="grid-label">
+                                <i class="fas fa-rocket grid-icon"></i>
+                                <span>3+ years</span>
+                                <small>Established</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="2">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="4" style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 4: Credit Score -->
+            <div class="form-page" id="page-4" data-page="4">
+                <div class="form-group">
+                    <h2><i class="fas fa-credit-card"></i> What's your credit score range?</h2>
+                    <p class="text-muted">(No credit check. Doesn’t affect approval.)</p>
+                </div>
+                
+                <div class="form-group">
+                    <div class="button-grid">
+                        <div class="grid-button">
+                            <input type="radio" name="credit-score" id="credit-500-600" value="500-600" class="grid-input">
+                            <label for="credit-500-600" class="grid-label">
+                                <i class="fas fa-credit-card grid-icon"></i>
+                                <span>500-600</span>
+                                <small>Fair</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="credit-score" id="credit-600-680" value="600-680" class="grid-input">
+                            <label for="credit-600-680" class="grid-label">
+                                <i class="fas fa-credit-card grid-icon"></i>
+                                <span>600-680</span>
+                                <small>Good</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="credit-score" id="credit-680-720" value="680-720" class="grid-input">
+                            <label for="credit-680-720" class="grid-label">
+                                <i class="fas fa-credit-card grid-icon"></i>
+                                <span>680-720</span>
+                                <small>Very Good</small>
+                            </label>
+                        </div>
+                        
+                        <div class="grid-button">
+                            <input type="radio" name="credit-score" id="credit-720-850" value="720-850" class="grid-input">
+                            <label for="credit-720-850" class="grid-label">
+                                <i class="fas fa-credit-card grid-icon"></i>
+                                <span>720-850</span>
+                                <small>Excellent</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="3">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="5" style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 5: Contact Info -->
+            <div class="form-page" id="page-5" data-page="5">
+                <div class="form-group">
+                    <h2><i class="fas fa-user-circle"></i> Contact Information</h2>
+                    <p class="text-muted">Please provide your contact details so we can reach you</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="full-name" class="form-label">Full Name</label>
+                    <input type="text" id="full-name" class="form-control" placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email Address</label>
+                    <input type="email" id="email" class="form-control" placeholder="john@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label required">Best contact number</label>
+                    <div class="phone-input">
+                        <div class="country-select">
+                            <div class="country-select-toggle" id="country-select-toggle">
+                                <span class="country-flag">🇺🇸</span> +1
+                                <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+                            </div>
+                            <div class="country-select-dropdown" id="country-select-dropdown">
+                                <div class="country-option" data-code="1" data-country="US">
+                                    <span class="country-flag">🇺🇸</span> +1
+                                </div>
+                                <div class="country-option" data-code="44" data-country="GB">
+                                    <span class="country-flag">🇬🇧</span> +44
+                                </div>
+                                <div class="country-option" data-code="61" data-country="AU">
+                                    <span class="country-flag">🇦🇺</span> +61
+                                </div>
+                                <div class="country-option" data-code="1" data-country="CA">
+                                    <span class="country-flag">🇨🇦</span> +1
+                                </div>
+                            </div>
+                        </div>
+                        <input type="tel" id="phone" class="form-control phone-number" placeholder="(123) 456-7890" required>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="4">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="6" style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 6: Additional Info -->
+            <div class="form-page" id="page-6" data-page="6">
+                <div class="form-group">
+                    <h2><i class="fas fa-comment-dots"></i> Additional Information</h2>
+                    <p class="text-muted">Anything else you would like us to know?</p>
+                </div>
+                
+                <div class="form-group">
+                    <textarea id="additional-info" class="textarea-control" placeholder="Tell us about your business needs, goals, or any special circumstances..."></textarea>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="5">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary next-page" data-next="7" style="width: 195px; padding: 12px 24px; font-size: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Page 7: Review -->
+            <div class="form-page" id="page-7" data-page="7">
+                <div class="form-group">
+                    <h2><i class="fas fa-check-circle"></i> Review Your Application</h2>
+                    <p class="text-muted">Please review your information before submitting</p>
+                </div>
+                
+                <div class="review-section">
+                    <h3>Loan Details</h3>
+                    <div class="review-item">
+                        <span class="review-label">Loan Amount:</span>
+                        <span class="review-value" id="review-loan-amount">$10,000</span>
+                    </div>
+                    
+                    <h3>Business Information</h3>
+                    <div class="review-item">
+                        <span class="review-label">Monthly Revenue:</span>
+                        <span class="review-value" id="review-revenue">Not selected</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">Years in Business:</span>
+                        <span class="review-value" id="review-business-age">Not selected</span>
+                    </div>
+                    
+                    <h3>Credit Information</h3>
+                    <div class="review-item">
+                        <span class="review-label">Credit Score Range:</span>
+                        <span class="review-value" id="review-credit-score">Not selected</span>
+                    </div>
+                    
+                    <h3>Contact Information</h3>
+                    <div class="review-item">
+                        <span class="review-label">Name:</span>
+                        <span class="review-value" id="review-name">Not provided</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">Email:</span>
+                        <span class="review-value" id="review-email">Not provided</span>
+                    </div>
+                    <div class="review-item">
+                        <span class="review-label">Phone:</span>
+                        <span class="review-value" id="review-phone">Not provided</span>
+                    </div>
+                    
+                    <h3>Additional Information</h3>
+                    <div class="review-item">
+                        <span class="review-label">Notes:</span>
+                        <span class="review-value" id="review-additional-info">None provided</span>
+                    </div>
+                </div>
+                
+                <div class="form-navigation">
+                    <button type="button" class="btn btn-outline prev-page" data-prev="6">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        Submit <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Investment Popup Content (hidden) -->
+<div id="investment-popup-content" style="display: none;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <i class="fas fa-lightbulb" style="font-size: 3rem; color: var(--warning); margin-bottom: 1rem;"></i>
+        <h3 style="margin-bottom: 1rem;">Unlock Funding Potential</h3>
+        <p style="color: var(--gray);">Would you consider an $800 investment to unlock $10,000–$125,000 in startup funding capital?</p>
+    </div>
+    <p style="text-align: center; font-weight: 600; margin-top: 1.5rem;">Would you like to proceed with this investment?</p>
+</div>
+
+<!-- jQuery and SweetAlert JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>// Google Sheets script URL (replace with your deployed web app URL)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9lyD3OWl9MW_XcvwqHF-SmR5DR1DMGxuKBokD2ZQ2bPPsAlJVLzU0k5glSLBkqc0s/exec';
+const SPREADSHEET_ID = '1o5l_Uj7BEuMTpTGFbtEiI0VeY9ZSIzVJ5QEEE811OkI'; // Only needed if you want to link to the sheet
+
+// Redirect URL after successful submission
+const REDIRECT_URL = 'https://link.crmleadjen.com/widget/bookings/fundpera';
+
+$(document).ready(function() {
+    // Track form state
+    let currentPage = 1;
+    const totalPages = 7;
+    let userAgreedToInvestment = false;
+    let currentRevenueSelection = null;
+    let selectedCountry = {
+        code: "1",
+        country: "US",
+        flag: "🇺🇸",
+        name: "United States"
+    };
+    
+    // Initialize form
+    updateProgressBar();
+    
+    // Country code selector
+    $('#country-select-toggle').click(function(e) {
+        e.stopPropagation();
+        $('#country-select-dropdown').toggleClass('show');
+    });
+    
+    $('.country-option').click(function() {
+        const code = $(this).data('code');
+        const country = $(this).data('country');
+        const flag = $(this).find('.country-flag').text();
+        const name = $(this).text().split('+')[0].trim();
+        
+        selectedCountry = { code, country, flag, name };
+        
+        $('#country-select-toggle').html(`
+            <span class="country-flag">${flag}</span> +${code}
+            <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+        `);
+        
+        $('#country-select-dropdown').removeClass('show');
+    });
+    
+    // Close dropdown when clicking outside
+    $(document).click(function() {
+        $('#country-select-dropdown').removeClass('show');
+    });
+    
+    // Slider functionality
+    $('#loan-amount-slider').on('input', function() {
+        const value = $(this).val();
+        $('#loan-amount-value').text(formatCurrency(value));
+    });
+    
+    // Button selection handler - Revenue
+    $('input[name="monthly-revenue"]').change(function() {
+        const selectedValue = $(this).val();
+        currentRevenueSelection = selectedValue;
+        
+        // Enable continue button by default
+        $('#revenue-continue-btn').prop('disabled', false);
+        
+        if (selectedValue === 'startup' || selectedValue === '5k-10k') {
+            if (!userAgreedToInvestment) {
+                $('#revenue-continue-btn').prop('disabled', true);
+                showInvestmentPopup();
+            }
+        }
+    });
+    
+    // Next page button
+    $('.next-page').click(function() {
+        const nextPage = parseInt($(this).data('next'));
+        
+        // Validate current page before proceeding
+        if (!validateCurrentPage()) return;
+        
+        // Update review page before showing it
+        if (nextPage === 7) {
+            updateReviewPage();
+        }
+        
+        navigateToPage(nextPage);
+    });
+    
+    // Previous page button
+    $('.prev-page').click(function() {
+        const prevPage = parseInt($(this).data('prev'));
+        navigateToPage(prevPage, 'left');
+    });
+    
+    // Form submission
+    $('#loanApplicationForm').submit(function(e) {
+        e.preventDefault();
+        
+        // Validate all fields before submission
+        if (validateForm()) {
+            // Show loading state on submit button
+            const submitBtn = $('#submit-btn');
+            submitBtn.html('<span class="loading-spinner"></span> Submitting...');
+            submitBtn.prop('disabled', true);
+            
+            // Prepare form data
+            const formData = {
+                loanAmount: $('#loan-amount-slider').val(),
+                monthlyRevenue: $('input[name="monthly-revenue"]:checked').val(),
+                businessAge: $('input[name="business-age"]:checked').val(),
+                creditScore: $('input[name="credit-score"]:checked').val(),
+                fullName: $('#full-name').val(),
+                email: $('#email').val(),
+                phone: $('#phone').val(),
+                countryCode: selectedCountry.code,
+                countryName: selectedCountry.name,
+                additionalInfo: $('#additional-info').val(),
+                agreedToInvestment: userAgreedToInvestment,
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('Form data being sent:', formData);
+            
+            // Send data to Google Sheets
+            $.ajax({
+                url: GOOGLE_SCRIPT_URL,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    console.log('Server response:', response);
+                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+                    submitBtn.prop('disabled', false);
+                    
+                    if (response.status === "success") {
+                        Swal.fire({
+                            title: 'Application Submitted!',
+                            text: 'Thank you for your application. We will review your information and contact you shortly.',
+                            icon: 'success',
+                            confirmButtonText: 'Great!',
+                            confirmButtonColor: '#4361ee',
+                            customClass: {
+                                popup: 'swal-center'
+                            }
+                        }).then(() => {
+                            window.location.href = REDIRECT_URL;
+                        });
+                    } else {
+                        showErrorAlert('Submission completed but server reported an issue: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    console.error('Response:', xhr.responseText);
+                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+                    submitBtn.prop('disabled', false);
+                    
+                    let errorMsg = 'There was an error submitting your application. Please try again.';
+                    try {
+                        const serverResponse = JSON.parse(xhr.responseText);
+                        if (serverResponse.message) {
+                            errorMsg += ` (${serverResponse.message})`;
+                        }
+                    } catch (e) {
+                        console.log('Could not parse server response');
+                    }
+                    
+                    showErrorAlert(errorMsg);
+                }
+            });
+        }
+    });
+    
+    function showInvestmentPopup() {
+        Swal.fire({
+            html: $('#investment-popup-content').html(),
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            confirmButtonColor: '#4361ee',
+            cancelButtonText: 'No',
+            allowOutsideClick: false,
+            width: '600px',
+            customClass: {
+                popup: 'swal-center'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                userAgreedToInvestment = true;
+                
+                if (currentRevenueSelection) {
+                    $(`input[name="monthly-revenue"][value="${currentRevenueSelection}"]`).prop('checked', true);
+                }
+                $('#revenue-continue-btn').prop('disabled', false);
+                
+                Swal.fire({
+                    title: 'Thank You!',
+                    text: 'Your investment has been recorded. This helps us process your application faster.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'swal-center'
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Notice',
+                    text: 'Sorry, we are not able to help you at this time.',
+                    icon: 'info',
+                    confirmButtonColor: '#4361ee',
+                    customClass: {
+                        popup: 'swal-center'
+                    }
+                }).then(() => {
+                    $('#loanApplicationForm')[0].reset();
+                    navigateToPage(1);
+                    userAgreedToInvestment = false;
+                    currentRevenueSelection = null;
+                    $('#loan-amount-value').text('$10,000');
+                    $('#loan-amount-slider').val(10000);
+                    updateProgressBar();
+                });
+            }
+        });
+    }
+
+    function navigateToPage(pageNum, direction = 'right') {
+        $(`#page-${currentPage}`).removeClass('active slide-in-right slide-in-left');
+        currentPage = pageNum;
+        const animationClass = direction === 'right' ? 'slide-in-right' : 'slide-in-left';
+        $(`#page-${currentPage}`).addClass(`active ${animationClass}`);
+        updateProgressBar();
+        $('.form-container').get(0).scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function updateProgressBar() {
+        const progressPercentage = Math.round(((currentPage - 1) / (totalPages - 1)) * 100);
+        $('#form-progress').css('width', `${progressPercentage}%`);
+        $('#progress-percentage').text(`${progressPercentage}%`);
+        
+        if (progressPercentage < 30) {
+            $('#form-progress').css('background-color', '#f72585');
+        } else if (progressPercentage < 70) {
+            $('#form-progress').css('background-color', '#f8961e');
+        } else {
+            $('#form-progress').css('background-color', '#4361ee');
+        }
+    }
+    
+    function validateCurrentPage() {
+        if (currentPage === 2) {
+            const selectedValue = $('input[name="monthly-revenue"]:checked').val();
+            if (!selectedValue) {
+                showErrorAlert('Please select your monthly revenue range');
+                return false;
+            }
+            
+            if ((selectedValue === 'startup' || selectedValue === '5k-10k') && !userAgreedToInvestment) {
+                showInvestmentPopup();
+                return false;
+            }
+        }
+        
+        if (currentPage === 3) {
+            const businessAgeSelected = $('input[name="business-age"]:checked').val();
+            if (!businessAgeSelected) {
+                showErrorAlert('Please select how long you\'ve been in business');
+                return false;
+            }
+        }
+        
+        if (currentPage === 4) {
+            const creditScoreSelected = $('input[name="credit-score"]:checked').val();
+            if (!creditScoreSelected) {
+                showErrorAlert('Please select your credit score range');
+                return false;
+            }
+        }
+        
+        if (currentPage === 5) {
+            const email = $('#email').val();
+            const phone = $('#phone').val();
+            
+            if (!email || !isValidEmail(email)) {
+                showErrorAlert('Please enter a valid email address');
+                return false;
+            }
+            
+            if (!phone || !isValidPhone(phone)) {
+                showErrorAlert('Please enter a valid phone number');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    function validateForm() {
+        let isValid = true;
+        let errorMessage = '';
+        
+        const loanAmount = $('#loan-amount-slider').val();
+        if (!loanAmount || loanAmount < 10000) {
+            isValid = false;
+            errorMessage = 'Please select a valid loan amount';
+        }
+        
+        const revenue = $('input[name="monthly-revenue"]:checked').val();
+        if (!revenue) {
+            isValid = false;
+            errorMessage = 'Please select your monthly revenue range';
+        } else if ((revenue === 'startup' || revenue === '5k-10k') && !userAgreedToInvestment) {
+            isValid = false;
+            errorMessage = 'Please agree to the investment terms';
+        }
+        
+        const businessAge = $('input[name="business-age"]:checked').val();
+        if (!businessAge) {
+            isValid = false;
+            errorMessage = 'Please select how long you\'ve been in business';
+        }
+        
+        const creditScore = $('input[name="credit-score"]:checked').val();
+        if (!creditScore) {
+            isValid = false;
+            errorMessage = 'Please select your credit score range';
+        }
+        
+        const email = $('#email').val();
+        const phone = $('#phone').val();
+        if (!email || !isValidEmail(email)) {
+            isValid = false;
+            errorMessage = 'Please enter a valid email address';
+        }
+        
+        if (!phone || !isValidPhone(phone)) {
+            isValid = false;
+            errorMessage = 'Please enter a valid phone number';
+        }
+        
+        if (!isValid) {
+            showErrorAlert(errorMessage);
+        }
+        
+        return isValid;
+    }
+    
+    function updateReviewPage() {
+        $('#review-loan-amount').text(formatCurrency($('#loan-amount-slider').val()));
+        $('#review-revenue').text(getRevenueText($('input[name="monthly-revenue"]:checked').val()));
+        $('#review-business-age').text(getBusinessAgeText($('input[name="business-age"]:checked').val()));
+        $('#review-credit-score').text(getCreditScoreText($('input[name="credit-score"]:checked').val()));
+        $('#review-name').text($('#full-name').val() || 'Not provided');
+        $('#review-email').text($('#email').val() || 'Not provided');
+        $('#review-phone').text(formatPhoneNumber($('#phone').val()) || 'Not provided');
+        $('#review-additional-info').text($('#additional-info').val() || 'None provided');
+    }
+    
+    function getRevenueText(value) {
+        switch(value) {
+            case 'startup': return 'Startup (Less than $5K)';
+            case '5k-10k': return '$5K-$10K (Early stage)';
+            case '10k-30k': return '$10K-$30K (Growing)';
+            case '30k-100k': return '$30K-$100K (Established)';
+            case '100k-300k': return '$100K-$300K (Mature)';
+            case '300k+': return '$300K+ (Enterprise)';
+            default: return 'Not selected';
+        }
+    }
+    
+    function getBusinessAgeText(value) {
+        switch(value) {
+            case 'startup': return 'Startup (Less than 6 months)';
+            case '6-12': return '6-12 months (Early stage)';
+            case '1-3': return '1-3 years (Growing)';
+            case '3+': return '3+ years (Established)';
+            default: return 'Not selected';
+        }
+    }
+    
+    function getCreditScoreText(value) {
+        switch(value) {
+            case '500-600': return '500-600 (Fair)';
+            case '600-680': return '600-680 (Good)';
+            case '680-720': return '680-720 (Very Good)';
+            case '720-850': return '720-850 (Excellent)';
+            default: return 'Not selected';
+        }
+    }
+    
+    function formatCurrency(value) {
+        return '$' + Number(value).toLocaleString('en-US');
+    }
+    
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+    
+    function isValidPhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        return digits.length >= 6;
+    }
+    
+    function formatPhoneNumber(phone) {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (selectedCountry.code === "1") {
+            const match = digits.match(/^(\d{3})(\d{3})(\d{4})$/);
+            return match ? `+1 (${match[1]}) ${match[2]}-${match[3]}` : `+1 ${digits}`;
+        } else {
+            return `+${selectedCountry.code} ${digits}`;
+        }
+    }
+    
+    function showErrorAlert(message) {
+        Swal.fire({
+            title: 'Error',
+            text: message,
+            icon: 'error',
+            confirmButtonColor: '#4361ee',
+            customClass: {
+                popup: 'swal-center'
+            }
+        });
+    }
+});</script>
+</body>
+</html>
