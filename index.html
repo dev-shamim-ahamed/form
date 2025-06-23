@@ -969,473 +969,470 @@ body {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>// Google Sheets script URL (replace with your deployed web app URL)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/library/d/1e0VRT0dATmZSP6dOaUBGKm5xseds9_J5yeuow332VlHln7ugtr_QQ033/10';
+<script>// Configuration
+const CONFIG = {
+  googleScriptUrl: 'https://script.google.com/macros/s/AKfycbwPFP7ytjlsucD_eC-C4AfBESslu0yn7iEdtlqKWGjsMjJgun6JY8PBRc-LwBPfILNmUw/exec',
+  redirectUrl: 'https://link.crmleadjen.com/widget/bookings/fundpera',
+  minLoanAmount: 10000,
+  maxLoanAmount: 500000
+};
 
-// Redirect URL after successful submission
-const REDIRECT_URL = 'https://link.crmleadjen.com/widget/bookings/fundpera';
+// Form state management
+const formState = {
+  currentPage: 1,
+  totalPages: 7,
+  userAgreedToInvestment: false,
+  currentRevenueSelection: null,
+  selectedCountry: {
+    code: "1",
+    country: "US",
+    flag: "🇺🇸",
+    name: "United States"
+  }
+};
 
+// DOM Ready
 $(document).ready(function() {
-    // Track form state
-    let currentPage = 1;
-    const totalPages = 7;
-    let userAgreedToInvestment = false;
-    let currentRevenueSelection = null;
-    let selectedCountry = {
-        code: "1",
-        country: "US",
-        flag: "🇺🇸",
-        name: "United States"
-    };
-    
-    // Initialize form
-    updateProgressBar();
-    
-    // Country code selector
-    $('#country-select-toggle').click(function(e) {
-        e.stopPropagation();
-        $('#country-select-dropdown').toggleClass('show');
-    });
-    
-    $('.country-option').click(function() {
-        const code = $(this).data('code');
-        const country = $(this).data('country');
-        const flag = $(this).find('.country-flag').text();
-        const name = $(this).text().split('+')[0].trim();
-        
-        selectedCountry = { code, country, flag, name };
-        
-        $('#country-select-toggle').html(`
-            <span class="country-flag">${flag}</span> +${code}
-            <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
-        `);
-        
-        $('#country-select-dropdown').removeClass('show');
-    });
-    
-    // Close dropdown when clicking outside
-    $(document).click(function() {
-        $('#country-select-dropdown').removeClass('show');
-    });
-    
-    // Slider functionality
-    $('#loan-amount-slider').on('input', function() {
-        const value = $(this).val();
-        $('#loan-amount-value').text(formatCurrency(value));
-    });
-    
-    // Button selection handler - Revenue
-    $('input[name="monthly-revenue"]').change(function() {
-        const selectedValue = $(this).val();
-        currentRevenueSelection = selectedValue;
-        
-        // Enable continue button by default
-        $('#revenue-continue-btn').prop('disabled', false);
-        
-        if (selectedValue === 'startup' || selectedValue === '5k-10k') {
-            if (!userAgreedToInvestment) {
-                $('#revenue-continue-btn').prop('disabled', true);
-                showInvestmentPopup();
-            }
-        }
-    });
-    
-    // Next page button
-    $('.next-page').click(function() {
-        const nextPage = parseInt($(this).data('next'));
-        
-        // Validate current page before proceeding
-        if (!validateCurrentPage()) return;
-        
-        // Update review page before showing it
-        if (nextPage === 7) {
-            updateReviewPage();
-        }
-        
-        navigateToPage(nextPage);
-    });
-    
-    // Previous page button
-    $('.prev-page').click(function() {
-        const prevPage = parseInt($(this).data('prev'));
-        navigateToPage(prevPage, 'left');
-    });
-    
-    // Form submission with improved error handling
-    $('#loanApplicationForm').submit(function(e) {
-        e.preventDefault();
-        
-        // Validate all fields before submission
-        if (validateForm()) {
-            // Show loading state on submit button
-            const submitBtn = $('#submit-btn');
-            submitBtn.html('<span class="loading-spinner"></span> Submitting...');
-            submitBtn.prop('disabled', true);
-            
-            // Prepare form data according to Google Apps Script requirements
-            const formData = {
-                loanAmount: $('#loan-amount-slider').val(),
-                monthlyRevenue: $('input[name="monthly-revenue"]:checked').val(),
-                businessAge: $('input[name="business-age"]:checked').val(),
-                creditScore: $('input[name="credit-score"]:checked').val(),
-                fullName: $('#full-name').val(),
-                email: $('#email').val(),
-                phone: $('#phone').val(),
-                countryCode: selectedCountry.code,
-                countryName: selectedCountry.name,
-                additionalInfo: $('#additional-info').val(),
-                agreedToInvestment: userAgreedToInvestment,
-                timestamp: new Date().toISOString()
-            };
-            
-            console.log('Form data being sent:', formData);
-            
-            // Send data to Google Sheets with improved error handling
-            $.ajax({
-                url: GOOGLE_SCRIPT_URL,
-                method: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify(formData),
-                success: function(response, status, xhr) {
-                    // Google Apps Script sometimes returns text even when we request JSON
-                    let responseData = response;
-                    if (typeof response === 'string') {
-                        try {
-                            responseData = JSON.parse(response);
-                        } catch (e) {
-                            console.error('Failed to parse response:', response);
-                            showDetailedError('Received unexpected response from server', response);
-                            return;
-                        }
-                    }
-                    
-                    if (responseData && responseData.status === "success") {
-                        Swal.fire({
-                            title: 'Application Submitted!',
-                            text: 'Thank you for your application. We will review your information and contact you shortly.',
-                            icon: 'success',
-                            confirmButtonText: 'Great!',
-                            confirmButtonColor: '#4361ee',
-                            customClass: {
-                                popup: 'swal-center'
-                            }
-                        }).then(() => {
-                            window.location.href = REDIRECT_URL;
-                        });
-                    } else {
-                        const errorMsg = responseData.message || 
-                                      responseData.error || 
-                                      'Submission completed but server reported an issue';
-                        showDetailedError(errorMsg, responseData);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', status, error);
-                    console.error('Response:', xhr.responseText);
-                    
-                    let errorMsg = 'There was an error submitting your application.';
-                    let serverMessage = '';
-                    
-                    try {
-                        const serverResponse = JSON.parse(xhr.responseText);
-                        if (serverResponse.message) {
-                            serverMessage = serverResponse.message;
-                        } else if (serverResponse.error) {
-                            serverMessage = serverResponse.error;
-                        }
-                    } catch (e) {
-                        console.log('Could not parse server response');
-                    }
-                    
-                    if (serverMessage) {
-                        errorMsg += ` Server says: ${serverMessage}`;
-                    } else if (xhr.status === 0) {
-                        errorMsg += ' Network error - could not connect to server.';
-                    } else {
-                        errorMsg += ` Error code: ${xhr.status}`;
-                    }
-                    
-                    showDetailedError(errorMsg, {
-                        status: xhr.status,
-                        response: xhr.responseText
-                    });
-                },
-                complete: function() {
-                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
-                    submitBtn.prop('disabled', false);
-                }
-            });
-        }
-    });
-    
-    function showInvestmentPopup() {
-        Swal.fire({
-            html: $('#investment-popup-content').html(),
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            confirmButtonColor: '#4361ee',
-            cancelButtonText: 'No',
-            allowOutsideClick: false,
-            width: '600px',
-            customClass: {
-                popup: 'swal-center'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                userAgreedToInvestment = true;
-                
-                if (currentRevenueSelection) {
-                    $(`input[name="monthly-revenue"][value="${currentRevenueSelection}"]`).prop('checked', true);
-                }
-                $('#revenue-continue-btn').prop('disabled', false);
-                
-                Swal.fire({
-                    title: 'Thank You!',
-                    text: 'Your investment has been recorded. This helps us process your application faster.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    customClass: {
-                        popup: 'swal-center'
-                    }
-                });
-            } else {
-                Swal.fire({
-                    title: 'Notice',
-                    text: 'Sorry, we are not able to help you at this time.',
-                    icon: 'info',
-                    confirmButtonColor: '#4361ee',
-                    customClass: {
-                        popup: 'swal-center'
-                    }
-                }).then(() => {
-                    $('#loanApplicationForm')[0].reset();
-                    navigateToPage(1);
-                    userAgreedToInvestment = false;
-                    currentRevenueSelection = null;
-                    $('#loan-amount-value').text('$10,000');
-                    $('#loan-amount-slider').val(10000);
-                    updateProgressBar();
-                });
-            }
-        });
-    }
+  initializeForm();
+  setupEventListeners();
+});
 
-    function navigateToPage(pageNum, direction = 'right') {
-        $(`#page-${currentPage}`).removeClass('active slide-in-right slide-in-left');
-        currentPage = pageNum;
-        const animationClass = direction === 'right' ? 'slide-in-right' : 'slide-in-left';
-        $(`#page-${currentPage}`).addClass(`active ${animationClass}`);
-        updateProgressBar();
-        $('.form-container').get(0).scrollIntoView({ behavior: 'smooth' });
-    }
+// Initialize form elements
+function initializeForm() {
+  updateProgressBar();
+  setupCountrySelector();
+  setupLoanAmountSlider();
+}
+
+// Set up all event listeners
+function setupEventListeners() {
+  // Navigation
+  $('.next-page').on('click', handleNextPage);
+  $('.prev-page').on('click', handlePrevPage);
+  
+  // Form elements
+  $('input[name="monthly-revenue"]').on('change', handleRevenueSelection);
+  $('#loanApplicationForm').on('submit', handleFormSubmission);
+}
+
+// Country selector setup
+function setupCountrySelector() {
+  $('#country-select-toggle').click(function(e) {
+    e.stopPropagation();
+    $('#country-select-dropdown').toggleClass('show');
+  });
+  
+  $('.country-option').click(function() {
+    const code = $(this).data('code');
+    const country = $(this).data('country');
+    const flag = $(this).find('.country-flag').text();
+    const name = $(this).text().split('+')[0].trim();
     
-    function updateProgressBar() {
-        const progressPercentage = Math.round(((currentPage - 1) / (totalPages - 1)) * 100);
-        $('#form-progress').css('width', `${progressPercentage}%`);
-        $('#progress-percentage').text(`${progressPercentage}%`);
-        
-        if (progressPercentage < 30) {
-            $('#form-progress').css('background-color', '#f72585');
-        } else if (progressPercentage < 70) {
-            $('#form-progress').css('background-color', '#f8961e');
-        } else {
-            $('#form-progress').css('background-color', '#4361ee');
-        }
-    }
+    formState.selectedCountry = { code, country, flag, name };
     
-    function validateCurrentPage() {
-        if (currentPage === 2) {
-            const selectedValue = $('input[name="monthly-revenue"]:checked').val();
-            if (!selectedValue) {
-                showErrorAlert('Please select your monthly revenue range');
-                return false;
-            }
-            
-            if ((selectedValue === 'startup' || selectedValue === '5k-10k') && !userAgreedToInvestment) {
-                showInvestmentPopup();
-                return false;
-            }
-        }
-        
-        if (currentPage === 3) {
-            const businessAgeSelected = $('input[name="business-age"]:checked').val();
-            if (!businessAgeSelected) {
-                showErrorAlert('Please select how long you\'ve been in business');
-                return false;
-            }
-        }
-        
-        if (currentPage === 4) {
-            const creditScoreSelected = $('input[name="credit-score"]:checked').val();
-            if (!creditScoreSelected) {
-                showErrorAlert('Please select your credit score range');
-                return false;
-            }
-        }
-        
-        if (currentPage === 5) {
-            const email = $('#email').val();
-            const phone = $('#phone').val();
-            
-            if (!email || !isValidEmail(email)) {
-                showErrorAlert('Please enter a valid email address');
-                return false;
-            }
-            
-            if (!phone || !isValidPhone(phone)) {
-                showErrorAlert('Please enter a valid phone number');
-                return false;
-            }
-        }
-        
-        return true;
-    }
+    $('#country-select-toggle').html(`
+      <span class="country-flag">${flag}</span> +${code}
+      <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+    `);
     
-    function validateForm() {
-        let isValid = true;
-        let errorMessage = '';
-        
-        const loanAmount = $('#loan-amount-slider').val();
-        if (!loanAmount || loanAmount < 10000) {
-            isValid = false;
-            errorMessage = 'Please select a valid loan amount';
-        }
-        
-        const revenue = $('input[name="monthly-revenue"]:checked').val();
-        if (!revenue) {
-            isValid = false;
-            errorMessage = 'Please select your monthly revenue range';
-        } else if ((revenue === 'startup' || revenue === '5k-10k') && !userAgreedToInvestment) {
-            isValid = false;
-            errorMessage = 'Please agree to the investment terms';
-        }
-        
-        const businessAge = $('input[name="business-age"]:checked').val();
-        if (!businessAge) {
-            isValid = false;
-            errorMessage = 'Please select how long you\'ve been in business';
-        }
-        
-        const creditScore = $('input[name="credit-score"]:checked').val();
-        if (!creditScore) {
-            isValid = false;
-            errorMessage = 'Please select your credit score range';
-        }
-        
-        const email = $('#email').val();
-        const phone = $('#phone').val();
-        if (!email || !isValidEmail(email)) {
-            isValid = false;
-            errorMessage = 'Please enter a valid email address';
-        }
-        
-        if (!phone || !isValidPhone(phone)) {
-            isValid = false;
-            errorMessage = 'Please enter a valid phone number';
-        }
-        
-        if (!isValid) {
-            showErrorAlert(errorMessage);
-        }
-        
-        return isValid;
-    }
-    
-    function updateReviewPage() {
-        $('#review-loan-amount').text(formatCurrency($('#loan-amount-slider').val()));
-        $('#review-revenue').text(getRevenueText($('input[name="monthly-revenue"]:checked').val()));
-        $('#review-business-age').text(getBusinessAgeText($('input[name="business-age"]:checked').val()));
-        $('#review-credit-score').text(getCreditScoreText($('input[name="credit-score"]:checked').val()));
-        $('#review-name').text($('#full-name').val() || 'Not provided');
-        $('#review-email').text($('#email').val() || 'Not provided');
-        $('#review-phone').text(formatPhoneNumber($('#phone').val()) || 'Not provided');
-        $('#review-additional-info').text($('#additional-info').val() || 'None provided');
-    }
-    
-    function getRevenueText(value) {
-        switch(value) {
-            case 'startup': return 'Startup (Less than $5K)';
-            case '5k-10k': return '$5K-$10K (Early stage)';
-            case '10k-30k': return '$10K-$30K (Growing)';
-            case '30k-100k': return '$30K-$100K (Established)';
-            case '100k-300k': return '$100K-$300K (Mature)';
-            case '300k+': return '$300K+ (Enterprise)';
-            default: return 'Not selected';
-        }
-    }
-    
-    function getBusinessAgeText(value) {
-        switch(value) {
-            case 'startup': return 'Startup (Less than 6 months)';
-            case '6-12': return '6-12 months (Early stage)';
-            case '1-3': return '1-3 years (Growing)';
-            case '3+': return '3+ years (Established)';
-            default: return 'Not selected';
-        }
-    }
-    
-    function getCreditScoreText(value) {
-        switch(value) {
-            case '500-600': return '500-600 (Fair)';
-            case '600-680': return '600-680 (Good)';
-            case '680-720': return '680-720 (Very Good)';
-            case '720-850': return '720-850 (Excellent)';
-            default: return 'Not selected';
-        }
-    }
-    
-    function formatCurrency(value) {
-        return '$' + Number(value).toLocaleString('en-US');
-    }
-    
-    function isValidEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
-    
-    function isValidPhone(phone) {
-        const digits = phone.replace(/\D/g, '');
-        return digits.length >= 6;
-    }
-    
-    function formatPhoneNumber(phone) {
-        if (!phone) return '';
-        const digits = phone.replace(/\D/g, '');
-        if (selectedCountry.code === "1") {
-            const match = digits.match(/^(\d{3})(\d{3})(\d{4})$/);
-            return match ? `+1 (${match[1]}) ${match[2]}-${match[3]}` : `+1 ${digits}`;
-        } else {
-            return `+${selectedCountry.code} ${digits}`;
-        }
-    }
-    
-    function showErrorAlert(message) {
-        Swal.fire({
-            title: 'Error',
-            text: message,
-            icon: 'error',
-            confirmButtonColor: '#4361ee',
-            customClass: {
-                popup: 'swal-center'
-            }
+    $('#country-select-dropdown').removeClass('show');
+  });
+  
+  $(document).click(function() {
+    $('#country-select-dropdown').removeClass('show');
+  });
+}
+
+// Loan amount slider setup
+function setupLoanAmountSlider() {
+  $('#loan-amount-slider').on('input', function() {
+    const value = $(this).val();
+    $('#loan-amount-value').text(formatCurrency(value));
+  });
+}
+
+// Handle next page navigation
+function handleNextPage() {
+  const nextPage = parseInt($(this).data('next'));
+  
+  if (!validateCurrentPage()) return;
+  
+  if (nextPage === 7) {
+    updateReviewPage();
+  }
+  
+  navigateToPage(nextPage);
+}
+
+// Handle previous page navigation
+function handlePrevPage() {
+  const prevPage = parseInt($(this).data('prev'));
+  navigateToPage(prevPage, 'left');
+}
+
+// Handle revenue selection
+function handleRevenueSelection() {
+  const selectedValue = $(this).val();
+  formState.currentRevenueSelection = selectedValue;
+  
+  $('#revenue-continue-btn').prop('disabled', false);
+  
+  if ((selectedValue === 'startup' || selectedValue === '5k-10k') && !formState.userAgreedToInvestment) {
+    $('#revenue-continue-btn').prop('disabled', true);
+    showInvestmentPopup();
+  }
+}
+
+// Handle form submission
+function handleFormSubmission(e) {
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+  
+  const submitBtn = $('#submit-btn');
+  submitBtn.html('<span class="loading-spinner"></span> Submitting...');
+  submitBtn.prop('disabled', true);
+  
+  const formData = prepareFormData();
+  
+  submitFormData(formData)
+    .then(response => {
+      submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+      submitBtn.prop('disabled', false);
+      
+      if (response.status === "success") {
+        showSuccessAlert().then(() => {
+          window.location.href = CONFIG.redirectUrl;
         });
+      } else {
+        showErrorAlert('Submission completed but server reported an issue: ' + response.message);
+      }
+    })
+    .catch(error => {
+      submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+      submitBtn.prop('disabled', false);
+      showErrorAlert(error.message || 'There was an error submitting your application. Please try again.');
+    });
+}
+
+// Prepare form data for submission
+function prepareFormData() {
+  return {
+    loanAmount: $('#loan-amount-slider').val(),
+    monthlyRevenue: $('input[name="monthly-revenue"]:checked').val(),
+    businessAge: $('input[name="business-age"]:checked').val(),
+    creditScore: $('input[name="credit-score"]:checked').val(),
+    fullName: $('#full-name').val(),
+    email: $('#email').val(),
+    phone: $('#phone').val(),
+    countryCode: formState.selectedCountry.code,
+    countryName: formState.selectedCountry.name,
+    additionalInfo: $('#additional-info').val(),
+    agreedToInvestment: formState.userAgreedToInvestment,
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Submit form data to Google Sheets
+function submitFormData(formData) {
+  return new Promise((resolve, reject) => {
+    $.ajax({
+      url: CONFIG.googleScriptUrl,
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(formData),
+      success: function(response) {
+        try {
+          const parsedResponse = typeof response === 'string' ? JSON.parse(response) : response;
+          resolve(parsedResponse);
+        } catch (e) {
+          reject(new Error('Invalid server response'));
+        }
+      },
+      error: function(xhr, status, error) {
+        let errorMsg = 'There was an error submitting your application. Please try again.';
+        try {
+          const serverResponse = JSON.parse(xhr.responseText);
+          if (serverResponse.message) {
+            errorMsg += ` (${serverResponse.message})`;
+          }
+        } catch (e) {
+          console.error('AJAX Error:', status, error);
+        }
+        reject(new Error(errorMsg));
+      }
+    });
+  });
+}
+
+// Show investment popup
+function showInvestmentPopup() {
+  Swal.fire({
+    html: $('#investment-popup-content').html(),
+    showCancelButton: true,
+    confirmButtonText: 'Yes',
+    confirmButtonColor: '#4361ee',
+    cancelButtonText: 'No',
+    allowOutsideClick: false,
+    width: '600px',
+    customClass: { popup: 'swal-center' }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      formState.userAgreedToInvestment = true;
+      
+      if (formState.currentRevenueSelection) {
+        $(`input[name="monthly-revenue"][value="${formState.currentRevenueSelection}"]`).prop('checked', true);
+      }
+      $('#revenue-continue-btn').prop('disabled', false);
+      
+      Swal.fire({
+        title: 'Thank You!',
+        text: 'Your investment has been recorded. This helps us process your application faster.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false,
+        customClass: { popup: 'swal-center' }
+      });
+    } else {
+      Swal.fire({
+        title: 'Notice',
+        text: 'Sorry, we are not able to help you at this time.',
+        icon: 'info',
+        confirmButtonColor: '#4361ee',
+        customClass: { popup: 'swal-center' }
+      }).then(() => {
+        resetForm();
+      });
     }
-    
-    function showDetailedError(message, details) {
-        console.error('Error details:', details);
-        Swal.fire({
-            title: 'Error',
-            html: `${message}<br><br>
-                  <small style="color:#888;">Technical details: ${JSON.stringify(details)}</small>`,
-            icon: 'error',
-            confirmButtonColor: '#4361ee',
-            customClass: {
-                popup: 'swal-center'
-            }
-        });
-    }
-});</script>
+  });
+}
+
+// Reset form to initial state
+function resetForm() {
+  $('#loanApplicationForm')[0].reset();
+  navigateToPage(1);
+  formState.userAgreedToInvestment = false;
+  formState.currentRevenueSelection = null;
+  $('#loan-amount-value').text(formatCurrency(CONFIG.minLoanAmount));
+  $('#loan-amount-slider').val(CONFIG.minLoanAmount);
+  updateProgressBar();
+}
+
+// Navigate between form pages
+function navigateToPage(pageNum, direction = 'right') {
+  $(`#page-${formState.currentPage}`).removeClass('active slide-in-right slide-in-left');
+  formState.currentPage = pageNum;
+  const animationClass = direction === 'right' ? 'slide-in-right' : 'slide-in-left';
+  $(`#page-${pageNum}`).addClass(`active ${animationClass}`);
+  updateProgressBar();
+  $('.form-container').get(0).scrollIntoView({ behavior: 'smooth' });
+}
+
+// Update progress bar
+function updateProgressBar() {
+  const progressPercentage = Math.round(((formState.currentPage - 1) / (formState.totalPages - 1)) * 100);
+  $('#form-progress').css('width', `${progressPercentage}%`);
+  $('#progress-percentage').text(`${progressPercentage}%`);
+  
+  if (progressPercentage < 30) {
+    $('#form-progress').css('background-color', '#f72585');
+  } else if (progressPercentage < 70) {
+    $('#form-progress').css('background-color', '#f8961e');
+  } else {
+    $('#form-progress').css('background-color', '#4361ee');
+  }
+}
+
+// Validate current page before proceeding
+function validateCurrentPage() {
+  switch(formState.currentPage) {
+    case 2:
+      return validateRevenuePage();
+    case 3:
+      return validateBusinessAgePage();
+    case 4:
+      return validateCreditScorePage();
+    case 5:
+      return validateContactInfoPage();
+    default:
+      return true;
+  }
+}
+
+// Validate revenue page
+function validateRevenuePage() {
+  const selectedValue = $('input[name="monthly-revenue"]:checked').val();
+  if (!selectedValue) {
+    showErrorAlert('Please select your monthly revenue range');
+    return false;
+  }
+  
+  if ((selectedValue === 'startup' || selectedValue === '5k-10k') && !formState.userAgreedToInvestment) {
+    showInvestmentPopup();
+    return false;
+  }
+  
+  return true;
+}
+
+// Validate business age page
+function validateBusinessAgePage() {
+  const businessAgeSelected = $('input[name="business-age"]:checked').val();
+  if (!businessAgeSelected) {
+    showErrorAlert('Please select how long you\'ve been in business');
+    return false;
+  }
+  return true;
+}
+
+// Validate credit score page
+function validateCreditScorePage() {
+  const creditScoreSelected = $('input[name="credit-score"]:checked').val();
+  if (!creditScoreSelected) {
+    showErrorAlert('Please select your credit score range');
+    return false;
+  }
+  return true;
+}
+
+// Validate contact info page
+function validateContactInfoPage() {
+  const email = $('#email').val();
+  const phone = $('#phone').val();
+  
+  if (!email || !isValidEmail(email)) {
+    showErrorAlert('Please enter a valid email address');
+    return false;
+  }
+  
+  if (!phone || !isValidPhone(phone)) {
+    showErrorAlert('Please enter a valid phone number');
+    return false;
+  }
+  
+  return true;
+}
+
+// Validate entire form before submission
+function validateForm() {
+  const validations = [
+    { condition: !!$('#loan-amount-slider').val(), message: 'Please select a valid loan amount' },
+    { condition: !!$('input[name="monthly-revenue"]:checked').val(), message: 'Please select your monthly revenue range' },
+    { 
+      condition: !['startup', '5k-10k'].includes($('input[name="monthly-revenue"]:checked').val()) || formState.userAgreedToInvestment, 
+      message: 'Please agree to the investment terms' 
+    },
+    { condition: !!$('input[name="business-age"]:checked').val(), message: 'Please select how long you\'ve been in business' },
+    { condition: !!$('input[name="credit-score"]:checked').val(), message: 'Please select your credit score range' },
+    { condition: !!$('#email').val() && isValidEmail($('#email').val()), message: 'Please enter a valid email address' },
+    { condition: !!$('#phone').val() && isValidPhone($('#phone').val()), message: 'Please enter a valid phone number' }
+  ];
+  
+  const failedValidation = validations.find(v => !v.condition);
+  if (failedValidation) {
+    showErrorAlert(failedValidation.message);
+    return false;
+  }
+  
+  return true;
+}
+
+// Update review page with all entered data
+function updateReviewPage() {
+  $('#review-loan-amount').text(formatCurrency($('#loan-amount-slider').val()));
+  $('#review-revenue').text(getRevenueText($('input[name="monthly-revenue"]:checked').val()));
+  $('#review-business-age').text(getBusinessAgeText($('input[name="business-age"]:checked').val()));
+  $('#review-credit-score').text(getCreditScoreText($('input[name="credit-score"]:checked').val()));
+  $('#review-name').text($('#full-name').val() || 'Not provided');
+  $('#review-email').text($('#email').val() || 'Not provided');
+  $('#review-phone').text(formatPhoneNumber($('#phone').val()) || 'Not provided');
+  $('#review-additional-info').text($('#additional-info').val() || 'None provided');
+}
+
+// Helper function to get revenue display text
+function getRevenueText(value) {
+  const revenueMap = {
+    'startup': 'Startup (Less than $5K)',
+    '5k-10k': '$5K-$10K (Early stage)',
+    '10k-30k': '$10K-$30K (Growing)',
+    '30k-100k': '$30K-$100K (Established)',
+    '100k-300k': '$100K-$300K (Mature)',
+    '300k+': '$300K+ (Enterprise)'
+  };
+  return revenueMap[value] || 'Not selected';
+}
+
+// Helper function to get business age display text
+function getBusinessAgeText(value) {
+  const businessAgeMap = {
+    'startup': 'Startup (Less than 6 months)',
+    '6-12': '6-12 months (Early stage)',
+    '1-3': '1-3 years (Growing)',
+    '3+': '3+ years (Established)'
+  };
+  return businessAgeMap[value] || 'Not selected';
+}
+
+// Helper function to get credit score display text
+function getCreditScoreText(value) {
+  const creditScoreMap = {
+    '500-600': '500-600 (Fair)',
+    '600-680': '600-680 (Good)',
+    '680-720': '680-720 (Very Good)',
+    '720-850': '720-850 (Excellent)'
+  };
+  return creditScoreMap[value] || 'Not selected';
+}
+
+// Helper function to format currency
+function formatCurrency(value) {
+  return '$' + Number(value).toLocaleString('en-US');
+}
+
+// Helper function to validate email
+function isValidEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+// Helper function to validate phone number
+function isValidPhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 6;
+}
+
+// Helper function to format phone number
+function formatPhoneNumber(phone) {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  if (formState.selectedCountry.code === "1") {
+    const match = digits.match(/^(\d{3})(\d{3})(\d{4})$/);
+    return match ? `+1 (${match[1]}) ${match[2]}-${match[3]}` : `+1 ${digits}`;
+  }
+  return `+${formState.selectedCountry.code} ${digits}`;
+}
+
+// Show success alert
+function showSuccessAlert() {
+  return Swal.fire({
+    title: 'Application Submitted!',
+    text: 'Thank you for your application. We will review your information and contact you shortly.',
+    icon: 'success',
+    confirmButtonText: 'Great!',
+    confirmButtonColor: '#4361ee',
+    customClass: { popup: 'swal-center' }
+  });
+}
+
+// Show error alert
+function showErrorAlert(message) {
+  return Swal.fire({
+    title: 'Error',
+    text: message,
+    icon: 'error',
+    confirmButtonColor: '#4361ee',
+    customClass: { popup: 'swal-center' }
+  });
+}</script>
 </body>
 </html>
