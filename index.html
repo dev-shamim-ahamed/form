@@ -1084,7 +1084,8 @@ $(document).ready(function() {
                 countryCode: selectedCountry.code,
                 countryName: selectedCountry.name,
                 additionalInfo: $('#additional-info').val(),
-                agreedToInvestment: userAgreedToInvestment
+                agreedToInvestment: userAgreedToInvestment,
+                timestamp: new Date().toISOString()
             };
             
             console.log('Form data being sent:', formData);
@@ -1149,6 +1150,10 @@ $(document).ready(function() {
                     
                     if (serverMessage) {
                         errorMsg += ` Server says: ${serverMessage}`;
+                    } else if (xhr.status === 0) {
+                        errorMsg += ' Network error - could not connect to server.';
+                    } else {
+                        errorMsg += ` Error code: ${xhr.status}`;
                     }
                     
                     showDetailedError(errorMsg, {
