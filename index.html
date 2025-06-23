@@ -1061,7 +1061,7 @@ $(document).ready(function() {
         navigateToPage(prevPage, 'left');
     });
     
-    // Form submission
+    // Form submission with improved error handling
     $('#loanApplicationForm').submit(function(e) {
         e.preventDefault();
         
@@ -1089,61 +1089,76 @@ $(document).ready(function() {
             
             console.log('Form data being sent:', formData);
             
-            // Send data to Google Sheets
+            // Send data to Google Sheets with improved error handling
             $.ajax({
                 url: GOOGLE_SCRIPT_URL,
                 method: 'POST',
+                dataType: 'json',
                 contentType: 'application/json',
                 data: JSON.stringify(formData),
-                success: function(response) {
-                    console.log('Server response:', response);
-                    
-                    try {
-                        // Parse the response if it's a string
-                        const responseData = typeof response === 'string' ? JSON.parse(response) : response;
-                        
-                        submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
-                        submitBtn.prop('disabled', false);
-                        
-                        if (responseData.status === "success") {
-                            Swal.fire({
-                                title: 'Application Submitted!',
-                                text: 'Thank you for your application. We will review your information and contact you shortly.',
-                                icon: 'success',
-                                confirmButtonText: 'Great!',
-                                confirmButtonColor: '#4361ee',
-                                customClass: {
-                                    popup: 'swal-center'
-                                }
-                            }).then(() => {
-                                window.location.href = REDIRECT_URL;
-                            });
-                        } else {
-                            showErrorAlert('Submission completed but server reported an issue: ' + 
-                                (responseData.message || 'Unknown error'));
+                success: function(response, status, xhr) {
+                    // Google Apps Script sometimes returns text even when we request JSON
+                    let responseData = response;
+                    if (typeof response === 'string') {
+                        try {
+                            responseData = JSON.parse(response);
+                        } catch (e) {
+                            console.error('Failed to parse response:', response);
+                            showDetailedError('Received unexpected response from server', response);
+                            return;
                         }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        showErrorAlert('There was an error processing the server response. Please try again.');
+                    }
+                    
+                    if (responseData && responseData.status === "success") {
+                        Swal.fire({
+                            title: 'Application Submitted!',
+                            text: 'Thank you for your application. We will review your information and contact you shortly.',
+                            icon: 'success',
+                            confirmButtonText: 'Great!',
+                            confirmButtonColor: '#4361ee',
+                            customClass: {
+                                popup: 'swal-center'
+                            }
+                        }).then(() => {
+                            window.location.href = REDIRECT_URL;
+                        });
+                    } else {
+                        const errorMsg = responseData.message || 
+                                      responseData.error || 
+                                      'Submission completed but server reported an issue';
+                        showDetailedError(errorMsg, responseData);
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('AJAX Error:', status, error);
                     console.error('Response:', xhr.responseText);
-                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
-                    submitBtn.prop('disabled', false);
                     
-                    let errorMsg = 'There was an error submitting your application. Please try again.';
+                    let errorMsg = 'There was an error submitting your application.';
+                    let serverMessage = '';
+                    
                     try {
                         const serverResponse = JSON.parse(xhr.responseText);
                         if (serverResponse.message) {
-                            errorMsg += ` (${serverResponse.message})`;
+                            serverMessage = serverResponse.message;
+                        } else if (serverResponse.error) {
+                            serverMessage = serverResponse.error;
                         }
                     } catch (e) {
                         console.log('Could not parse server response');
                     }
                     
-                    showErrorAlert(errorMsg);
+                    if (serverMessage) {
+                        errorMsg += ` Server says: ${serverMessage}`;
+                    }
+                    
+                    showDetailedError(errorMsg, {
+                        status: xhr.status,
+                        response: xhr.responseText
+                    });
+                },
+                complete: function() {
+                    submitBtn.html('Submit <i class="fas fa-paper-plane"></i>');
+                    submitBtn.prop('disabled', false);
                 }
             });
         }
@@ -1395,6 +1410,20 @@ $(document).ready(function() {
         Swal.fire({
             title: 'Error',
             text: message,
+            icon: 'error',
+            confirmButtonColor: '#4361ee',
+            customClass: {
+                popup: 'swal-center'
+            }
+        });
+    }
+    
+    function showDetailedError(message, details) {
+        console.error('Error details:', details);
+        Swal.fire({
+            title: 'Error',
+            html: `${message}<br><br>
+                  <small style="color:#888;">Technical details: ${JSON.stringify(details)}</small>`,
             icon: 'error',
             confirmButtonColor: '#4361ee',
             customClass: {
