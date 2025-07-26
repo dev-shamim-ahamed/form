@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>মোহনা টিউন - আবেদন ফর্ম</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Siyam Rupali', 'Noto Sans Bengali', sans-serif;
+      background-color: #f2f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .header {
+      background: #fff;
+      padding: 15px 10px;
+      border-bottom: 3px solid #008cba;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .header img {
+      height: 60px;
+    }
+
+    .title-box {
+      background: linear-gradient(to right, #ffdd00, #ffe55e);
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #d40000;
+      padding: 10px;
+      margin: 25px auto;
+      width: 240px;
+      border-radius: 7px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .form-container {
+      max-width: 900px;
+      background: #ffffff;
+      margin: auto;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border: 1px solid #ddd;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 15px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      box-sizing: border-box;
+      background-color: #fefefe;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .form-row > div {
+      flex: 1 1 100%;
+    }
+
+    .checkbox-group {
+      margin-top: 20px;
+    }
+
+    .checkbox-group label {
+      margin-right: 15px;
+      font-weight: normal;
+    }
+
+    .terms {
+      margin-top: 30px;
+      background: #f9f9f9;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+    }
+
+    .terms h3 {
+      margin-bottom: 10px;
+      color: #c00;
+    }
+
+    ol {
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    button {
+      background-color: #00a651;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 25px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #008f46;
+    }
+
+    #payment-options {
+      display: none;
+      margin-top: 30px;
+      background: #e4fff0;
+      padding: 25px;
+      border-radius: 7px;
+      border: 1px dashed #00a651;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .payment-option {
+      display: inline-block;
+      margin: 10px 20px 0 0;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-top: 30px;
+      font-size: 18px;
+      color: #008cba;
+    }
+
+    @media (min-width: 600px) {
+      .form-row > div {
+        flex: 1 1 calc(50% - 10px);
+      }
+    }
+
+    @media (min-width: 900px) {
+      .form-row > div {
+        flex: 1 1 calc(33.333% - 13.3px);
+      }
+    }
+
+    @media (max-width: 599px) {
+      .title-box {
+        font-size: 20px;
+        width: auto;
+      }
+
+      .form-container {
+        padding: 20px;
+      }
+
+      .payment-option {
+        display: block;
+        margin: 8px 0;
+      }
+
+      button {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="https://i.ibb.co/S5GBspt/mohona-logo-demo.png" alt="Logo">
+  </div>
+
+  <div class="form-container">
+    <div class="title-box">আবেদন ফর্ম</div>
+
+    <form id="applicationForm">
+      <div class="form-row">
+        <div>
+          <label>ফর্ম নং:</label>
+          <input type="text" name="form_no">
+        </div>
+        <div>
+          <label>ভর্তি তারিখ:</label>
+          <input type="date" name="admission_date">
+        </div>
+      </div>
+
+      <label>আবেদনকারীর নাম:</label>
+      <input type="text" name="applicant_name">
+
+      <div class="form-row">
+        <div>
+          <label>পিতার নাম:</label>
+          <input type="text" name="father_name">
+        </div>
+        <div>
+          <label>মাতার নাম:</label>
+          <input type="text" name="mother_name">
+        </div>
+      </div>
+
+      <label>স্থায়ী ঠিকানা:</label>
+      <input type="text" name="permanent_address">
+
+      <label>মোবাইল নম্বর:</label>
+      <input type="text" name="mobile">
+
+      <label>বর্তমান ঠিকানা:</label>
+      <input type="text" name="present_address">
+
+      <div class="form-row">
+        <div>
+          <label>গ্রাম/পাড়া/মহল্লা:</label>
+          <input type="text" name="village">
+        </div>
+        <div>
+          <label>উপজেলা:</label>
+          <input type="text" name="upazila">
+        </div>
+        <div>
+          <label>জেলা:</label>
+          <input type="text" name="district">
+        </div>
+      </div>
+
+      <div class="checkbox-group section-title">
+        ভর্তি বিভাগ:
+        <label><input type="checkbox" name="division" value="শিশু"> শিশু বিভাগ</label>
+        <label><input type="checkbox" name="division" value="কিশোর"> কিশোর বিভাগ</label>
+        <label><input type="checkbox" name="division" value="সিনিয়র"> সিনিয়র বিভাগ</label>
+        <label><input type="checkbox" name="division" value="বৃদ্ধ"> বৃদ্ধ বিভাগ</label>
+      </div>
+
+      <button type="submit">জমা দিন</button>
+    </form>
+
+    <div id="payment-options">
+      <h3>পেমেন্ট পদ্ধতি নির্বাচন করুন:</h3>
+      <div class="payment-option"><input type="radio" name="payment" value="bkash"> বিকাশ</div>
+      <div class="payment-option"><input type="radio" name="payment" value="nagad"> নগদ</div>
+      <div class="payment-option"><input type="radio" name="payment" value="rocket"> রকেট</div>
+      <div class="payment-option"><input type="radio" name="payment" value="card"> কার্ড</div>
+    </div>
+
+    <div class="terms">
+      <h3>সংগঠনের শর্ত সমূহ</h3>
+      <ol>
+        <li>ফর্ম পূরণের পর সংগঠনের অনুমতি ছাড়া তথ্য পরিবর্তন বা অন্যত্র ব্যবহার করা যাবে না।</li>
+        <li>ভর্তি মাস শেষে আবেদন বাতিল করা যাবে না এবং ফি ফেরতযোগ্য নয়।</li>
+        <li>শৃঙ্খলা ভঙ্গ বা নীতি লঙ্ঘন করলে সদস্যপদ বাতিল করা হবে।</li>
+        <li>মাসিক চাঁদা নির্ধারিত সময়ে পরিশোধ করতে হবে।</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("applicationForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      document.getElementById("payment-options").style.display = "block";
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+  </script>
+
+</body>
+</html>
