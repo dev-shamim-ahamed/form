@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .input-focus {
+      transition: all 0.3s ease;
+    }
+    .input-focus:focus {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .auth-container {
+      max-width: 420px;
+    }
+    .logo-container {
+      width: 120px;
+      height: 120px;
+    }
+    .form-title {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .form-title:after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: #2563eb;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="auth-container w-full">
+    <div class="bg-white rounded-xl overflow-hidden card-shadow">
+      <!-- Header Section -->
+      <div class="bg-gradient-to-r p-8 text-center text-white">
+        <div class="flex justify-center">
+          <div class="logo-container h-full w-full rounded-xl items-center justify-center">
+            <img src="logo.jpeg" alt="Logo" class="h-full w-full rounded-xl object-contain">
+          </div>
+        </div>
+      </div>
+      
+      <!-- Content Section -->
+      <div class="p-8">
+        <!-- Login Form (Default Visible) -->
+        <div id="loginForm">
+          <h2 class="text-xl font-semibold text-gray-800 form-title">লগইন করুন</h2>
+          <div class="space-y-5">
+            <div>
+              <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="far fa-envelope text-gray-400"></i>
+                </div>
+                <input type="email" id="loginEmail" class="input-focus w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="আপনার ইমেইল দিন">
+              </div>
+            </div>
+            
+            <div>
+              <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-lock text-gray-400"></i>
+                </div>
+                <input type="password" id="loginPassword" class="input-focus w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="আপনার পাসওয়ার্ড দিন">
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="togglePassword('loginPassword', this)">
+                  <i class="far fa-eye text-gray-400 hover:text-gray-600 cursor-pointer"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <div class="text-sm">
+                <a href="#" class="font-medium text-blue-600 hover:text-blue-500" onclick="toggleForm('register')">
+                  নতুন অ্যাকাউন্ট তৈরি করুন
+                </a>
+              </div>
+              <div class="text-sm">
+                <a href="#" class="font-medium text-blue-600 hover:text-blue-500" onclick="toggleForm('forgot')">
+                  পাসওয়ার্ড ভুলে গেছেন?
+                </a>
+              </div>
+            </div>
+            
+            <div class="pt-4">
+              <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <i class="fas fa-sign-in-alt mr-2"></i> লগইন করুন
+              </button>
+            </div>
+            
+            <div id="loginError" class="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg hidden"></div>
+          </div>
+        </div>
+        
+        <!-- Registration Form (Hidden by Default) -->
+        <div id="registerForm" class="hidden">
+          <h2 class="text-xl font-semibold text-gray-800 form-title">নতুন অ্যাকাউন্ট তৈরি করুন</h2>
+          <div class="space-y-5">
+            <div>
+              <label for="regName" class="block text-sm font-medium text-gray-700 mb-2">পূর্ণ নাম</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="far fa-user text-gray-400"></i>
+                </div>
+                <input type="text" id="regName" class="input-focus w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="আপনার পূর্ণ নাম">
+              </div>
+            </div>
+            
+            <div>
+              <label for="regMobile" class="block text-sm font-medium text-gray-700 mb-2">মোবাইল নম্বর</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-phone-alt text-gray-400"></i>
+                </div>
+                <input type="text" id="regMobile" pattern="01[3-9]\d{8}" class="input-focus w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="01XXXXXXXXX">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">সঠিক মোবাইল নম্বর লিখুন (01XXXXXXXXX)</p>
+            </div>
+            
+            <div>
+              <label for="regEmail" class="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="far fa-envelope text-gray-400"></i>
+                </div>
+                <input type="email" id="regEmail" class="input-focus w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="আপনার ইমেইল">
+              </div>
+            </div>
+            
+            <div>
+              <label for="regPassword" class="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-lock text-gray-400"></i>
+                </div>
+                <input type="password" id="regPassword" minlength="6" class="input-focus w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="ন্যূনতম ৬ অক্ষরের পাসওয়ার্ড">
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="togglePassword('regPassword', this)">
+                  <i class="far fa-eye text-gray-400 hover:text-gray-600 cursor-pointer"></i>
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">ন্যূনতম ৬ অক্ষরের পাসওয়ার্ড দিন</p>
+            </div>
+            
+            <div>
+              <label for="regConfirmPassword" class="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড নিশ্চিত করুন</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fas fa-lock text-gray-400"></i>
+                </div>
+                <input type="password" id="regConfirmPassword" minlength="6" class="input-focus w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="পাসওয়ার্ড নিশ্চিত করুন">
+                <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="togglePassword('regConfirmPassword', this)">
+                  <i class="far fa-eye text-gray-400 hover:text-gray-600 cursor-pointer"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="text-center pt-2">
+              <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500" onclick="toggleForm('login')">
+                <i class="fas fa-sign-in-alt mr-1"></i> ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন
+              </a>
+            </div>
+            
+            <div class="pt-4">
+              <button id="registerBtn" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <i class="fas fa-user-plus mr-2"></i> রেজিস্টার করুন
+              </button>
+            </div>
+            
+            <div id="registerError" class="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg hidden"></div>
+            <div id="registerSuccess" class="mt-4 p-3 bg-green-50 text-green-600 text-sm rounded-lg hidden"></div>
+          </div>
+        </div>
+        
+        <!-- Forgot Password Form (Hidden by Default) -->
+        <div id="forgotForm" class="hidden">
+          <h2 class="text-xl font-semibold text-gray-800 form-title">পাসওয়ার্ড রিসেট করুন</h2>
+          <div class="space-y-5">
+            <div>
+              <p class="text-gray-600 mb-5 text-center">আপনার রেজিস্টার্ড ইমেইল দিন। পাসওয়ার্ড রিসেট লিঙ্ক পাঠানো হবে।</p>
+              
+              <label for="forgotEmail" class="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="far fa-envelope text-gray-400"></i>
+                </div>
+                <input type="email" id="forgotEmail" class="input-focus w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="আপনার ইমেইল">
+              </div>
+            </div>
+
+            <div class="text-center pt-2">
+              <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-500" onclick="toggleForm('login')">
+                <i class="fas fa-arrow-left mr-1"></i> লগইন পেজে ফিরে যান
+              </a>
+            </div>
+            
+            <div class="pt-4">
+              <button id="forgotBtn" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                <i class="fas fa-paper-plane mr-2"></i> লিঙ্ক পাঠান
+              </button>
+            </div>
+            
+            <div id="forgotError" class="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg hidden"></div>
+            <div id="forgotSuccess" class="mt-4 p-3 bg-green-50 text-green-600 text-sm rounded-lg hidden"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer Links -->
+      <div class="px-8 py-4 bg-gray-50 border-t border-gray-200 text-center">
+        <p class="text-sm text-gray-600">© 2025 Zikrah Records. সর্বস্বত্ব সংরক্ষিত</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuaWMh0eIJ2tdtLxYj43ij9MGSh_Yo22M",
+      authDomain: "test-6977e.firebaseapp.com",
+      projectId: "test-6977e",
+      storageBucket: "test-6977e.firebasestorage.app",
+      messagingSenderId: "544329273038",
+      appId: "1:544329273038:web:c7a31e12bec7c80741ca9f"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Password visibility toggle function
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      const icon = button.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    // Form toggle function
+    function toggleForm(formName) {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('forgotForm').classList.add('hidden');
+      
+      if (formName === 'login') {
+        document.getElementById('loginForm').classList.remove('hidden');
+      } else if (formName === 'register') {
+        document.getElementById('registerForm').classList.remove('hidden');
+      } else {
+        document.getElementById('forgotForm').classList.remove('hidden');
+      }
+    }
+
+    // Login function
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      if (!email || !password) {
+        showError('loginError', 'ইমেইল এবং পাসওয়ার্ড দিন');
+        return;
+      }
+      
+      const btn = document.getElementById('loginBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> লগইন হচ্ছে...';
+      btn.disabled = true;
+      
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          return db.collection('admins').doc(userCredential.user.uid).get()
+            .then((doc) => {
+              if (doc.exists) {
+                window.location.href = 'admin.html';
+              } else {
+                window.location.href = 'index.html';
+              }
+            });
+        })
+        .catch((error) => {
+          let errorMessage = 'লগইন করতে সমস্যা হয়েছে';
+          if (error.code === 'auth/user-not-found') {
+            errorMessage = 'ইমেইল খুঁজে পাওয়া যায়নি';
+          } else if (error.code === 'auth/wrong-password') {
+            errorMessage = 'ভুল পাসওয়ার্ড';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'অবৈধ ইমেইল';
+          } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = 'অনেকবার চেষ্টা করেছেন। পরে আবার চেষ্টা করুন';
+          }
+          showError('loginError', errorMessage);
+        })
+        .finally(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        });
+    });
+
+    // Registration function
+    document.getElementById('registerBtn').addEventListener('click', () => {
+      const name = document.getElementById('regName').value;
+      const mobile = document.getElementById('regMobile').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      
+      if (!name || !mobile || !email || !password || !confirmPassword) {
+        showError('registerError', 'সকল তথ্য পূরণ করুন');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        showError('registerError', 'পাসওয়ার্ড মিলছে না');
+        return;
+      }
+      
+      if (!mobile.match(/^01[3-9]\d{8}$/)) {
+        showError('registerError', 'সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)');
+        return;
+      }
+      
+      if (password.length < 6) {
+        showError('registerError', 'পাসওয়ার্ড অবশ্যই ৬ অক্ষরের বেশি হতে হবে');
+        return;
+      }
+      
+      const btn = document.getElementById('registerBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> রেজিস্টার হচ্ছে...';
+      btn.disabled = true;
+      
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          return db.collection('users').doc(userCredential.user.uid).set({
+            name: name,
+            mobile: mobile,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .then(() => {
+          showSuccess('registerSuccess', 'রেজিস্ট্রেশন সফল! এখন লগইন করুন');
+          document.getElementById('registerError').classList.add('hidden');
+          toggleForm('login');
+          // Clear registration form
+          document.getElementById('regName').value = '';
+          document.getElementById('regMobile').value = '';
+          document.getElementById('regEmail').value = '';
+          document.getElementById('regPassword').value = '';
+          document.getElementById('regConfirmPassword').value = '';
+        })
+        .catch((error) => {
+          let errorMessage = 'রেজিস্ট্রেশন করতে সমস্যা হয়েছে';
+          if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'ইমেইল ইতিমধ্যে ব্যবহার করা হয়েছে';
+          } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'পাসওয়ার্ড অবশ্যই ৬ অক্ষরের বেশি হতে হবে';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'অবৈধ ইমেইল';
+          }
+          showError('registerError', errorMessage);
+        })
+        .finally(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        });
+    });
+
+    // Forgot password function
+    document.getElementById('forgotBtn').addEventListener('click', () => {
+      const email = document.getElementById('forgotEmail').value;
+      
+      if (!email) {
+        showError('forgotError', 'আপনার ইমেইল দিন');
+        return;
+      }
+      
+      const btn = document.getElementById('forgotBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> প্রসেসিং...';
+      btn.disabled = true;
+      
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          showSuccess('forgotSuccess', 'পাসওয়ার্ড রিসেট লিঙ্ক আপনার ইমেইলে পাঠানো হয়েছে');
+          document.getElementById('forgotError').classList.add('hidden');
+          document.getElementById('forgotEmail').value = '';
+        })
+        .catch((error) => {
+          let errorMessage = 'ত্রুটি হয়েছে';
+          if (error.code === 'auth/user-not-found') {
+            errorMessage = 'ইমেইল খুঁজে পাওয়া যায়নি';
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'অবৈধ ইমেইল';
+          }
+          showError('forgotError', errorMessage);
+        })
+        .finally(() => {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        });
+    });
+
+    function showError(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.classList.remove('hidden');
+      
+      // Hide success message if showing
+      if (elementId.includes('Error')) {
+        const successId = elementId.replace('Error', 'Success');
+        document.getElementById(successId).classList.add('hidden');
+      }
+    }
+
+    function showSuccess(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.classList.remove('hidden');
+      
+      // Hide error message if showing
+      if (elementId.includes('Success')) {
+        const errorId = elementId.replace('Success', 'Error');
+        document.getElementById(errorId).classList.add('hidden');
+      }
+    }
+
+    // Check if user is already logged in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        db.collection('admins').doc(user.uid).get()
+          .then((doc) => {
+            if (doc.exists) {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'index.html';
+            }
+          });
+      }
+    });
+
+    // Allow form submission on Enter key press
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (!document.getElementById('loginForm').classList.contains('hidden')) {
+          document.getElementById('loginBtn').click();
+        } else if (!document.getElementById('registerForm').classList.contains('hidden')) {
+          document.getElementById('registerBtn').click();
+        } else if (!document.getElementById('forgotForm').classList.contains('hidden')) {
+          document.getElementById('forgotBtn').click();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
